@@ -12,7 +12,7 @@
 
 ;;; Package Manager
 (defvar elpaca-installer-version 0.10)
-(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+;;(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
@@ -87,7 +87,7 @@
 
 (use-package spacious-padding
   :ensure (:fetcher github :repo "protesilaos/spacious-padding")
-  :defer 0.1
+  ;;:defer 0.1
   :custom
   ;; new
   (spacious-padding-widths
@@ -105,6 +105,13 @@
 
 
 ;;; modeline
+(use-package minions
+  :ensure (:fetcher github :repo "tarsius/minions")
+  :defer 0.1
+  :after (doom-modeline)
+  ;;:hook (doom-modeline-mode . minions-mode)
+  )
+
 (use-package doom-modeline
   :ensure (:fetcher github :repo "seagle0128/doom-modeline")
   ;;:hook (after-init . doom-modeline-mode)
@@ -133,50 +140,12 @@
   ;;(setq doom-modeline-env-version-length 10) 
   )
 
-(use-package minions
-  :ensure (:fetcher github :repo "tarsius/minions")
-  :defer 0.1
-  :after (doom-modeline)
-  :hook (doom-modeline-mode . minions-mode))
-
-
-
-;; ;; Enable built-in modules for time and battery
-;; (display-time-mode 1)
-;; (display-battery-mode 1)
-;; Customize mode-line-format
-;; (setq-default
-;;  mode-line-format
-;;  '(
-;;    ;; Buffer info: name and modified status
-;;    (:propertize "%b" face mode-line-buffer-id)
-;;    " "
-;;    (:eval (if (buffer-modified-p) "*" " "))
-;;    "  "
-;;    ;; Position: line and column
-;;    "(%l:%c)  "
-;;    ;; Major mode and minor modes
-;;    mode-name
-;;    "  "
-;;    minor-mode-alist
-;;    ;; Right-aligned elements
-;;    (:eval (propertize " " 'display '((space :align-to (- right 40)))))
-;;    "  "
-;;    ;; Version control (git)
-;;    vc-mode
-;;    ;; Time and battery
-;;    display-time-string
-;;    "  "
-;;    battery-mode-line-string
-;;    ))
-
-
 ;;; Editing Convenience
 (delete-selection-mode 1)
 (fset 'yes-or-no-p 'y-or-n-p)
 
 ;;; Auto-Revert
-(require 'autorevert)
+;;(require 'autorevert)
 (global-auto-revert-mode 1)
 (setq auto-revert-use-notify t)
 (add-hook 'dired-mode-hook 'auto-revert-mode)
@@ -208,12 +177,43 @@
   ;;(custom-file null-device "Don't store customizations")
   )
 
-;; ;;; setting for undo/redo
-;; (use-package undo
-;;   :ensure nil ;; built in feature, no need to ensure
-;;   :bind
-;;   ("C-z" . undo-only)
-;;   ("C-S-z" . undo-redo))
+
+;;; Undo/Redo like we are used to
+(use-package undo-fu
+  :ensure (:fetcher github :repo "emacsmirror/undo-fu")
+  ;;:defer 0.1
+  :config
+  (global-unset-key (kbd "C-z"))
+  (global-set-key (kbd "C-z")   'undo-fu-only-undo)
+  (global-set-key (kbd "C-S-z") 'undo-fu-only-redo)
+  )
+
+;;; Moving lines up and down
+(use-package drag-stuff
+  :ensure (:fetcher github :repo "rejeep/drag-stuff.el")
+  :after org
+  :config
+  (define-key drag-stuff-mode-map (drag-stuff--kbd 'up) 'drag-stuff-up)
+  (define-key drag-stuff-mode-map (drag-stuff--kbd 'down) 'drag-stuff-down)
+  (drag-stuff-global-mode t)
+  (defun ub/org-drag-up ()
+    (interactive)
+    (call-interactively
+     (if (org-at-heading-p)
+         'org-metaup
+       'drag-stuff-up)))
+  (defun ub/org-drag-down ()
+    (interactive)
+    (call-interactively
+     (if (org-at-heading-p)
+         'org-metadown
+       'drag-stuff-down)))
+  ;; override drag-stuff keybindings w/ ub/org-drag... when in org-mode
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (define-key drag-stuff-mode-map (drag-stuff--kbd 'up) 'ub/org-drag-up)
+              (define-key drag-stuff-mode-map (drag-stuff--kbd 'down) 'ub/org-drag-down))))
+
 
 ;;; Window movements
 (use-package window
@@ -425,7 +425,7 @@
 ;;;
 (use-package realgud
   :ensure (:fetcher github :repo "realgud/realgud")
-  :defer 0.1
+  :defer t;0.1
   ;; when in python-mode set key C-c d d to realgud:pdb
   :bind
   (:map python-mode-map
