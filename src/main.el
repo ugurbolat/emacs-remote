@@ -450,3 +450,7 @@
 (when (featurep 'transient)
   (load-file (expand-file-name "src/remote-runner-args-python-transient.el" user-emacs-directory)))
 (load-file (expand-file-name "src/remote-runner.el" user-emacs-directory))
+
+
+(add-to-list 'load-path (expand-file-name "src/doom/" user-emacs-directory))
+(require 'doom-files-standalone)
