@@ -149,6 +149,7 @@
 (global-auto-revert-mode 1)
 (setq auto-revert-use-notify t)
 (add-hook 'dired-mode-hook 'auto-revert-mode)
+(setq revert-without-query '(".")) ;; don't prompt y/n when revert-buffer, I know what I am doing...
 
 ;;; Hooks
 (add-hook 'text-mode-hook #'visual-line-mode)
